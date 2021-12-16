@@ -1,6 +1,7 @@
 const mysql = require('mysql2');
 const { APPCENTER } = require('ci-info');
 const express = require('express');
+const { rosybrown } = require('color-name');
 const PORT = process.env.PORT || 3002;
 const app = express();
 
@@ -21,9 +22,21 @@ const db = mysql.createConnection(
     console.log('Connected to the election database!')
 );
 //GET ALL CANDIDATES ON QUERY 
-// db.query(`SELECT * FROM candidates`, (err, rows) => {
-//     console.log(rows);
-// });
+app.get('/api/candidate/:id', (req, res) => {
+    const sql = `SELECT * FROM candidates WHERE id = ?`;
+    const params = [req.params.id];
+  
+    db.query(sql, params, (err, row) => {
+      if (err) {
+        res.status(400).json({ error: err.message });
+        return;
+      }
+      res.json({
+        message: 'success',
+        data: row
+      });
+    });
+  });
 
 
 
@@ -41,12 +54,26 @@ const db = mysql.createConnection(
 
 //DELETE CANDIDATES 
 
-    // db.query(`DELETE FROM candidates WHERE id = ?`, 1, (err, result) => {
-    //     if (err){
-    //         console.log(err);
-    //     }
-    //     console.log(result);
-    // });
+app.delete('/api/candidate/:id', (req, res) => {
+    const sql = `DELETE FROM candidates WHERE id = ?`;
+    const params = [req.params.id];
+  
+    db.query(sql, params, (err, result) => {
+      if (err) {
+        res.statusMessage(400).json({ error: res.message });
+      } else if (!result.affectedRows) {
+        res.json({
+          message: 'Candidate not found'
+        });
+      } else {
+        res.json({
+          message: 'deleted',
+          changes: result.affectedRows,
+          id: req.params.id
+        });
+      }
+    });
+  });
 
 //CREATE A CANDIDATE 
 // const sql = `INSERT INTO candidates (id, first_name, last_name, industry_connected) VALUES (?,?,?,?)`;
